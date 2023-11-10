@@ -1,4 +1,5 @@
 import scrapy
+from automobile_scraper.items import AaaautoItem
 
 
 class AaaautoSpiderSpider(scrapy.Spider):
@@ -23,8 +24,19 @@ class AaaautoSpiderSpider(scrapy.Spider):
             yield response.follow(car_url, callback=self.parse_car_page)
 
     def parse_car_page(self, response):
-        id = response.url.split('?id=')[1]
-        yield {
-            'url': response.url,
-            'id': id
-        }
+        item = AaaautoItem()
+        item['url'] = response.url
+        item['id'] = response.url.split('?id=')[1]
+        item['manufacturer'] = response.css('h1 ::text').getall()[0].replace('\n', '').replace('\t', '')
+        item['model'] = response.css('h1 ::text').getall()[1].replace('\n', '').replace('\t', '').split(', ')[0]
+        item['year'] = response.css('h1 ::text').getall()[1].replace('\n', '').replace('\t', '').split(', ')[1]
+        item['tech_params'] = {}
+        tech_params = response.css('div.techParamsRow tr')
+        for tech_param in tech_params:
+            item['tech_params'][tech_param.css('th ::text').get().replace('\n', '').replace('\t', '')] = tech_param.css('td ::text').get().replace('\n', '').replace('\t', '')
+        info_box = response.css('ul.infoBoxNav')
+        #if info_box.css('li.infoBoxNavTitle span ::text').get().replace('\n', '').replace('\t', '').replace(' ', '') == 'Cena':
+        item['price'] = info_box.css('li.infoBoxNavTitle strong ::text').get()
+        #elif info_box.css('li')[2].css('span ::text').get().replace('\n', '').replace('\t', '').replace(' ', '') == 'Cena':
+        #    item['price'] = info_box.css('li')[2].css('span.notranslate ::text').getall()[-1].replace('\n', '').replace('\t', '').strip()
+        yield item

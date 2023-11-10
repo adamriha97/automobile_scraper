@@ -10,3 +10,12 @@ class AutomobileScraperItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     pass
+
+class AaaautoItem(scrapy.Item):
+    url = scrapy.Field()
+    id = scrapy.Field()
+    manufacturer = scrapy.Field()
+    model = scrapy.Field()
+    year = scrapy.Field()
+    tech_params = scrapy.Field()
+    price = scrapy.Field()
