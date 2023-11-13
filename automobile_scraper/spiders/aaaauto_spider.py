@@ -20,6 +20,9 @@ class AaaautoSpiderSpider(scrapy.Spider):
             'scrapy_selenium.SeleniumMiddleware': 800
         }
         }
+    
+    ### with_images != 1 -> data scraped without images, with_images == 1 -> data scraped with images (longer process)
+    with_images = 0
 
     def parse(self, response):
         number_of_pages = int(max(response.css('nav.pagenav ul li a ::attr(data-page)').getall(), key=lambda x: int(x)))
@@ -29,14 +32,11 @@ class AaaautoSpiderSpider(scrapy.Spider):
     
     def parse_page(self, response):
         car_urls = response.css('div.carsGrid div.card a.fullSizeLink ::attr(href)').getall()
-        for car_url in car_urls:
-            #yield response.follow(car_url, callback=self.parse_car_page)
-            yield SeleniumRequest(
-                url=car_url, 
-                callback=self.parse_car_page, 
-                wait_time=15,
-                wait_until=EC.element_to_be_clickable((By.CLASS_NAME, 'slick-track'))
-            )
+        for car_url in car_urls: #if car_url == "https://www.aaaauto.cz/cz/vw-e-golf/car.html?id=613072851#":
+            if self.with_images != 1:
+                yield response.follow(car_url, callback=self.parse_car_page)
+            else:
+                yield SeleniumRequest(url=car_url, callback=self.parse_car_page, wait_time=15, wait_until=EC.element_to_be_clickable((By.CLASS_NAME, 'slick-track'))) #slick-track electro-stats
 
     def parse_car_page(self, response):
         item = AaaautoItem()
@@ -65,5 +65,9 @@ class AaaautoSpiderSpider(scrapy.Spider):
             item['consumption'] = consumptions[-3] + " " + consumptions[-2]
         else:
             item['consumption'] = "N/A"
-        item['image'] = response.css('div#gallery li.galleryLi div.slick-track img ::attr(src)').get()
+        #item['electro_stats'] = {}
+        #electro_stats = response.css('ul.electro-stats__list li.electro-stats__list-item')
+        #for electro_stat in electro_stats:
+        #    item['electro_stats'][electro_stat.css('::text').get()] = electro_stat.css('strong.electro-stats__list-value ::text').get()
+        item['images'] = list(filter(lambda x: x.split('/')[2] == "aaaautoeuimg.vshcdn.net", response.css('div#gallery li.galleryLi div.slick-track img ::attr(src)').getall()))
         yield item
