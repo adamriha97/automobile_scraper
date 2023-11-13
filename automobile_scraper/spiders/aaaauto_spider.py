@@ -1,4 +1,8 @@
 import scrapy
+from scrapy_selenium import SeleniumRequest
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+
 from automobile_scraper.items import AaaautoItem
 
 
@@ -10,6 +14,11 @@ class AaaautoSpiderSpider(scrapy.Spider):
     custom_settings = {
         'FEEDS': {'aaaauto_data.json': {'format': 'json', 'overwrite': True}},
         'FEED_EXPORT_ENCODING': 'utf-8',
+        'SELENIUM_DRIVER_NAME': 'chrome',
+        'SELENIUM_DRIVER_ARGUMENTS': ['--headless'], # '--headless'
+        'DOWNLOADER_MIDDLEWARES': {
+            'scrapy_selenium.SeleniumMiddleware': 800
+        }
         }
 
     def parse(self, response):
@@ -21,7 +30,13 @@ class AaaautoSpiderSpider(scrapy.Spider):
     def parse_page(self, response):
         car_urls = response.css('div.carsGrid div.card a.fullSizeLink ::attr(href)').getall()
         for car_url in car_urls:
-            yield response.follow(car_url, callback=self.parse_car_page)
+            #yield response.follow(car_url, callback=self.parse_car_page)
+            yield SeleniumRequest(
+                url=car_url, 
+                callback=self.parse_car_page, 
+                wait_time=15,
+                wait_until=EC.element_to_be_clickable((By.CLASS_NAME, 'slick-track'))
+            )
 
     def parse_car_page(self, response):
         item = AaaautoItem()
@@ -45,4 +60,10 @@ class AaaautoSpiderSpider(scrapy.Spider):
         packages = response.css('ul.multipleTab')[0].css('li div')
         for i in range(len(packages)):
             item['equipment'][package_names[i]] = packages[i].css('li ::text').getall()
+        consumptions = response.css('div.countbarItem ::text').getall()
+        if len(response.css('div.countbarItem ::text').getall()) > 0:
+            item['consumption'] = consumptions[-3] + " " + consumptions[-2]
+        else:
+            item['consumption'] = "N/A"
+        item['image'] = response.css('div#gallery li.galleryLi div.slick-track img ::attr(src)').get()
         yield item

@@ -22,3 +22,5 @@ class AaaautoItem(scrapy.Item):
     price = scrapy.Field()
     price_info = scrapy.Field()
     equipment = scrapy.Field()
+    consumption = scrapy.Field()
+    image = scrapy.Field()
