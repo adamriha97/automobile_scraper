@@ -45,26 +45,33 @@ class AaaautoSpiderSpider(scrapy.Spider):
         item['manufacturer'] = response.css('h1 ::text').getall()[0].replace('\n', '').replace('\t', '')
         item['model'] = '-'.join(response.url.split('/')[4].split('-')[1:])
         item['model_long'] = response.css('h1 ::text').getall()[1].replace('\n', '').replace('\t', '').split(', ')[0]
-        item['year'] = response.css('h1 ::text').getall()[1].replace('\n', '').replace('\t', '').split(', ')[1]
+        item['year'] = response.css('h1 ::text').getall()[1].replace('\n', '').replace('\t', '').split(', ')[-1]
+        item['year_int'] = int(response.css('h1 ::text').getall()[1].replace('\n', '').replace('\t', '').split(', ')[-1])
         item['tech_params'] = {}
         tech_params = response.css('div.techParamsRow tr')
         for tech_param in tech_params:
             item['tech_params'][tech_param.css('th ::text').get().replace('\n', '').replace('\t', '')] = tech_param.css('td ::text').get().replace('\n', '').replace('\t', '')
+        consumptions = response.css('div.countbarItem ::text').getall()
+        if len(response.css('div.countbarItem ::text').getall()) > 0:
+            item['consumption'] = consumptions[-3] + " " + consumptions[-2]
+            item['consumption_int'] = float(consumptions[-3])
+        else:
+            item['consumption'] = "N/A"
+            item['consumption_int'] = -1
         info_box = response.css('ul.infoBoxNav')
+        price = "0"
         if info_box.css('li.infoBoxNavTitle ::text').getall()[1].replace('\n', '').replace('\t', '').replace(' ', '') == 'Cena': #if info_box.css('li.infoBoxNavTitle span ::text').get().replace('\n', '').replace('\t', '').replace(' ', '') == 'Cena':
-            item['price'] = info_box.css('li.infoBoxNavTitle strong ::text').get()
+            price = info_box.css('li.infoBoxNavTitle strong ::text').get()
+            item['price'] = price
         elif info_box.css('li')[2].css('span ::text').get().replace('\n', '').replace('\t', '').replace(' ', '') == 'Cena':
-            item['price'] = info_box.css('li')[2].css('span.notranslate ::text').getall()[-1].replace('\n', '').replace('\t', '').strip()
+            price = info_box.css('li')[2].css('span.notranslate ::text').getall()[-1].replace('\n', '').replace('\t', '').strip()
+            item['price'] = price
+        item['price_int'] = int(price.replace(' ', '').split('Kč')[0])
         item['equipment'] = {}
         package_names = response.css('ul.multipleTab')[0].css('li span ::text').getall()
         packages = response.css('ul.multipleTab')[0].css('li div')
         for i in range(len(packages)):
             item['equipment'][package_names[i]] = packages[i].css('li ::text').getall()
-        consumptions = response.css('div.countbarItem ::text').getall()
-        if len(response.css('div.countbarItem ::text').getall()) > 0:
-            item['consumption'] = consumptions[-3] + " " + consumptions[-2]
-        else:
-            item['consumption'] = "N/A"
         #item['electro_stats'] = {}
         #electro_stats = response.css('ul.electro-stats__list li.electro-stats__list-item')
         #for electro_stat in electro_stats:
