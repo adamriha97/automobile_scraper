@@ -32,6 +32,7 @@ class AaaautoSpiderSpider(scrapy.Spider):
     
     def parse_page(self, response):
         car_urls = response.css('div.carsGrid div.card a.fullSizeLink ::attr(href)').getall()
+        #car_urls = ["https://www.aaaauto.cz/cz/skoda-praktik/car.html?id=622530220#"]
         for car_url in car_urls: #if car_url == "https://www.aaaauto.cz/cz/vw-e-golf/car.html?id=613072851#":
             if self.with_images != 1:
                 yield response.follow(car_url, callback=self.parse_car_page)
@@ -48,7 +49,7 @@ class AaaautoSpiderSpider(scrapy.Spider):
         item['year'] = response.css('h1 ::text').getall()[1].replace('\n', '').replace('\t', '').split(', ')[-1]
         item['year_int'] = int(response.css('h1 ::text').getall()[1].replace('\n', '').replace('\t', '').split(', ')[-1])
         item['tech_params'] = {}
-        tech_params = response.css('div.techParamsRow tr')
+        tech_params = response.css('div.techParamsRow.general tr')
         for tech_param in tech_params:
             item['tech_params'][tech_param.css('th ::text').get().replace('\n', '').replace('\t', '')] = tech_param.css('td ::text').get().replace('\n', '').replace('\t', '')
         consumptions = response.css('div.countbarItem ::text').getall()
