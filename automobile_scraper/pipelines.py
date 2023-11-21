@@ -11,3 +11,14 @@ from itemadapter import ItemAdapter
 class AutomobileScraperPipeline:
     def process_item(self, item, spider):
         return item
+
+class AaaautoPipeline:
+    def process_item(self, item, spider):
+        adapter = ItemAdapter(item)
+
+        adapter['field_names'] = []
+        field_names = adapter.field_names()
+        for field_name in field_names:
+            adapter['field_names'].append(field_name)
+
+        return item

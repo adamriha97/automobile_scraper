@@ -12,6 +12,8 @@ class AutomobileScraperItem(scrapy.Item):
     pass
 
 class AaaautoItem(scrapy.Item):
+    field_names = scrapy.Field()
+
     url = scrapy.Field()
     id = scrapy.Field()
     manufacturer = scrapy.Field()
@@ -20,6 +22,8 @@ class AaaautoItem(scrapy.Item):
     year = scrapy.Field()
     year_int = scrapy.Field()
     tech_params = scrapy.Field()
+    tachometr_int = scrapy.Field()
+    tech_params_other = scrapy.Field()
     consumption = scrapy.Field()
     consumption_int = scrapy.Field()
     price = scrapy.Field()

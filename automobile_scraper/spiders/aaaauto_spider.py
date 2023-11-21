@@ -2,6 +2,7 @@ import scrapy
 from scrapy_selenium import SeleniumRequest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+import re
 
 from automobile_scraper.items import AaaautoItem
 
@@ -18,6 +19,9 @@ class AaaautoSpiderSpider(scrapy.Spider):
         'SELENIUM_DRIVER_ARGUMENTS': ['--headless'], # '--headless'
         'DOWNLOADER_MIDDLEWARES': {
             'scrapy_selenium.SeleniumMiddleware': 800
+        },
+        'ITEM_PIPELINES': {
+            'automobile_scraper.pipelines.AaaautoPipeline': 310
         }
         }
     
@@ -52,6 +56,20 @@ class AaaautoSpiderSpider(scrapy.Spider):
         tech_params = response.css('div.techParamsRow.general tr')
         for tech_param in tech_params:
             item['tech_params'][tech_param.css('th ::text').get().replace('\n', '').replace('\t', '')] = tech_param.css('td ::text').get().replace('\n', '').replace('\t', '')
+        try:
+            item['tachometr_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Tachometr']))
+        except:
+            item['tachometr_int'] = -1
+        item['tech_params_other'] = {}
+        tech_param_rows = response.css('div.techParamsRow')
+        if len(tech_param_rows) > 1:
+            tech_params_other_names = tech_param_rows[1].css('h3 ::text').getall()
+            tech_params_other_tables = tech_param_rows[1].css('table.transparentTable')
+            for name, table in zip(tech_params_other_names, tech_params_other_tables):
+                item['tech_params_other'][name] = {}
+                table_params = table.css('tr')
+                for table_param in table_params:
+                    item['tech_params_other'][name][table_param.css('th ::text').get()] = table_param.css('td ::text').get()
         consumptions = response.css('div.countbarItem ::text').getall()
         if len(response.css('div.countbarItem ::text').getall()) > 0:
             item['consumption'] = consumptions[-3] + " " + consumptions[-2]
