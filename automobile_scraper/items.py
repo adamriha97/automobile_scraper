@@ -26,7 +26,7 @@ class AaaautoItem(scrapy.Item):
     motor_kW_int = scrapy.Field()
     prevodovka_int = scrapy.Field()
     mista_int = scrapy.Field()
-    emise_int = scrapy.Field()
+    emise_g_km_int = scrapy.Field()
     baterie_perc_int = scrapy.Field()
     dojezd_km_int = scrapy.Field()
     tech_params_other = scrapy.Field()

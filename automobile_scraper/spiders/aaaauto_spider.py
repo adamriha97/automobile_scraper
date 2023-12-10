@@ -37,7 +37,7 @@ class AaaautoSpiderSpider(scrapy.Spider):
     def parse_page(self, response):
         car_urls = response.css('div.carsGrid div.card a.fullSizeLink ::attr(href)').getall()
         #car_urls = ["https://www.aaaauto.cz/cz/skoda-praktik/car.html?id=622530220#"]
-        car_urls = ["https://www.aaaauto.cz/cz/nissan-leaf/car.html?id=622387207#palivo=7"]
+        #car_urls = ["https://www.aaaauto.cz/cz/nissan-leaf/car.html?id=622387207#palivo=7"]
         for car_url in car_urls: #if car_url == "https://www.aaaauto.cz/cz/vw-e-golf/car.html?id=613072851#":
             if self.with_images != 1:
                 yield response.follow(car_url, callback=self.parse_car_page)
@@ -56,7 +56,7 @@ class AaaautoSpiderSpider(scrapy.Spider):
         item['tech_params'] = {}
         tech_params = response.css('div.techParamsRow.general tr')
         for tech_param in tech_params:
-            item['tech_params'][tech_param.css('th ::text').get().replace('\n', '').replace('\t', '')] = tech_param.css('td ::text').get().replace('\n', '').replace('\t', '')
+            item['tech_params'][tech_param.css('th ::text').get().replace('\n', '').replace('\t', '')] = "".join(tech_param.css('td ::text').getall()).replace('\n', '').replace('\t', '')
         try:
             item['tachometr_km_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Tachometr']))
         except:
@@ -77,9 +77,9 @@ class AaaautoSpiderSpider(scrapy.Spider):
         except:
             item['mista_int'] = -1
         try:
-            item['emise_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Emise CO₂']))
+            item['emise_g_km_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Emise CO₂']))
         except:
-            item['emise_int'] = -1
+            item['emise_g_km_int'] = -1
         try:
             item['baterie_perc_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Zdraví baterie (SoH)']))
         except:
