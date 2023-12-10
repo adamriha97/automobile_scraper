@@ -37,6 +37,7 @@ class AaaautoSpiderSpider(scrapy.Spider):
     def parse_page(self, response):
         car_urls = response.css('div.carsGrid div.card a.fullSizeLink ::attr(href)').getall()
         #car_urls = ["https://www.aaaauto.cz/cz/skoda-praktik/car.html?id=622530220#"]
+        car_urls = ["https://www.aaaauto.cz/cz/nissan-leaf/car.html?id=622387207#palivo=7"]
         for car_url in car_urls: #if car_url == "https://www.aaaauto.cz/cz/vw-e-golf/car.html?id=613072851#":
             if self.with_images != 1:
                 yield response.follow(car_url, callback=self.parse_car_page)
@@ -57,9 +58,36 @@ class AaaautoSpiderSpider(scrapy.Spider):
         for tech_param in tech_params:
             item['tech_params'][tech_param.css('th ::text').get().replace('\n', '').replace('\t', '')] = tech_param.css('td ::text').get().replace('\n', '').replace('\t', '')
         try:
-            item['tachometr_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Tachometr']))
+            item['tachometr_km_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Tachometr']))
         except:
-            item['tachometr_int'] = -1
+            item['tachometr_km_int'] = -1
+        try:
+            item['motor_kW_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Motor'].split(',')[1]))
+        except:
+            try:
+                item['motor_kW_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Pohon'].split(',')[1]))
+            except:
+                item['motor_kW_int'] = -1
+        try:
+            item['prevodovka_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Převodovka']))
+        except:
+            item['prevodovka_int'] = -1
+        try:
+            item['mista_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Míst k sezení']))
+        except:
+            item['mista_int'] = -1
+        try:
+            item['emise_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Emise CO₂']))
+        except:
+            item['emise_int'] = -1
+        try:
+            item['baterie_perc_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Zdraví baterie (SoH)']))
+        except:
+            item['baterie_perc_int'] = -1
+        try:
+            item['dojezd_km_int'] = int(re.sub(r'[^0-9]', '', item['tech_params']['Dojezd dle výrobce']))
+        except:
+            item['dojezd_km_int'] = -1
         item['tech_params_other'] = {}
         tech_param_rows = response.css('div.techParamsRow')
         if len(tech_param_rows) > 1:
