@@ -32,7 +32,7 @@ class AaaautoSpiderSpider(scrapy.Spider):
         number_of_pages = int(max(response.css('nav.pagenav ul li a ::attr(data-page)').getall(), key=lambda x: int(x)))
         for i in range(number_of_pages):
             page_url = 'https://www.aaaauto.cz/ojete-vozy/?page=' + str(i + 1)
-            if i == 0: yield response.follow(page_url, callback=self.parse_page) # if i == 0: 
+            yield response.follow(page_url, callback=self.parse_page) # if i == 0: 
     
     def parse_page(self, response):
         car_urls = response.css('div.carsGrid div.card a.fullSizeLink ::attr(href)').getall()
